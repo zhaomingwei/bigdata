@@ -14,10 +14,10 @@ import java.math.BigDecimal;
  * @Time: 15:37
  *
  * 四个泛型类型分别代表：
- *      KeyIn        Reducer的输入数据的Key，这里是每行文字中的“年份”
- *      ValueIn      Reducer的输入数据的Value，这里是每行文字中的“气温”
- *      KeyOut       Reducer的输出数据的Key，这里是不重复的“年份”
- *      ValueOut     Reducer的输出数据的Value，这里是这一年中的“最高气温”
+ *      KeyIn        Reducer的输入数据的Key，这里是每行记录的发车编号
+ *      ValueIn      Reducer的输入数据的Value，这里是每行记录的实体类
+ *      KeyOut       Reducer的输出数据的Key，这里是每行记录的发车编号
+ *      ValueOut     Reducer的输出数据的Value，这里是处理后的实体类
  */
 public class StationDetailReducer extends Reducer<Text, StationDetail, Text, Text> {
 
