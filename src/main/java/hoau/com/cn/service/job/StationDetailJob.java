@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.lib.db.DBConfiguration;
 import org.apache.hadoop.mapreduce.lib.db.DBInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -37,7 +38,7 @@ public class StationDetailJob {
 
         @Override
         public int run(String[] args) throws Exception {
-            JobConf conf = new JobConf(StationDetailJob.class);
+            JobConf conf = new JobConf(StationDetailTool.class);
 
             InputStream in = StationDetailJob.class.getResourceAsStream("/conf.properties");
             Properties properties = new Properties();
