@@ -25,14 +25,14 @@ public class FilterRecordWrite extends RecordWriter<Text, Text> {
      * 将job通过参数传递过来
      **/
     public void init(TaskAttemptContext taskAttemptContext) {
-        final String output_dir = taskAttemptContext.getConfiguration().get("output_dir");
+        final String output_date_dir = taskAttemptContext.getConfiguration().get("output_date_dir");
         final String output_name = taskAttemptContext.getConfiguration().get("output_name");
         String outDir = taskAttemptContext.getConfiguration().get(FileOutputFormat.OUTDIR);
         System.out.println("outDir:" + outDir);
-        System.out.println("output_dir:" + output_dir);
+        System.out.println("output_date_dir:" + output_date_dir);
         System.out.println("output_name:" + output_name);
         try {
-            Path path = new Path(outDir + "/" + output_dir + "/" + output_name);
+            Path path = new Path(outDir + "/" + output_date_dir + "/" + output_name);
             FileSystem fileSystem = path.getFileSystem(taskAttemptContext.getConfiguration());
             outPath = fileSystem.create(path, true);
         } catch (Exception e) {

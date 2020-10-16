@@ -4,6 +4,7 @@ import hoau.com.cn.entity.StationDetail;
 import hoau.com.cn.service.format.FilterOutputFormat;
 import hoau.com.cn.service.mapper.StationDetailMapper;
 import hoau.com.cn.service.reducer.StationDetailReducer;
+import hoau.com.cn.utils.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -18,45 +19,39 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.http.client.utils.DateUtils;
 
-import java.io.InputStream;
 import java.util.Date;
-import java.util.Properties;
 
 /**
- * @Author zw
- * Hello world!
+ * @Description: 统计标签数
+ * @Author: zhaowei
+ * @Date: 2020/10/16
+ * @Time: 13:09
  */
-public class StationDetailJob {
+public class CalLabelNumAndVoteNumJob {
+
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-        int res = ToolRunner.run(configuration, new StationDetailTool(), args);
+        int res = ToolRunner.run(configuration, new CalLabelNumTool(), args);
         System.exit(res);
     }
 
-    static class StationDetailTool extends Configured implements Tool {
+    static class CalLabelNumTool extends Configured implements Tool {
 
         @Override
         public int run(String[] args) throws Exception {
-            JobConf conf = new JobConf(StationDetailTool.class);
+            JobConf conf = new JobConf(CalLabelNumTool.class);
 
-            InputStream in = StationDetailJob.class.getResourceAsStream("/conf.properties");
-            Properties properties = new Properties();
-            properties.load(in);
-            String diverClass = properties.getProperty("driver.class");
-            String url = properties.getProperty("driver.url");
-            String userName = properties.getProperty("driver.username");
-            String passWord = properties.getProperty("driver.password");
-            String stationBaseDir = properties.getProperty("station.detail.baseDir");
-            String output_name = properties.getProperty("station.detail.outputName");
+            String baseDir = Config.getProperty("baseDir") + Config.getProperty("label.num.dir");
 
             String date = DateUtils.formatDate(new Date(), "yyyyMMddHHmmss");
             String output_date_dir = date;
             conf.set("output_date_dir", output_date_dir);
-            conf.set("output_name", output_name);
+            conf.set("output_name",  Config.getProperty("label.num.outputName"));
             System.out.println("模式：" + conf.get("mapreduce.framework.name"));
 
             //注意这行代码放在最前面，进行初始化，否则会报
-            DBConfiguration.configureDB(conf, diverClass, url, userName, passWord);
+            DBConfiguration.configureDB(conf, Config.getProperty("driver.class"), Config.getProperty("driver.url"),
+                    Config.getProperty("driver.username"), Config.getProperty("driver.password"));
 
             /**设置数据库SQL语句,SQL结尾不能问添加; ，否则不能成功执行**/
             String sql = "  SELECT GS.GSJC GSJC," +
@@ -111,18 +106,19 @@ public class StationDetailJob {
 
             DBInputFormat.setInput(job, StationDetail.class, sql, count);
 
-            String baseDir = stationBaseDir + conf.get("output_date_dir");
+            String dir = baseDir + conf.get("output_date_dir");
 
-            Path path = new Path( baseDir + "/" + output_date_dir + "/" + output_name);
+            Path path = new Path( dir + "/" + output_date_dir + "/" + Config.getProperty("label.num.outputName"));
             FileSystem fs = path.getFileSystem(conf);
             if (!fs.exists(path)) {
-                System.out.println("开始生成场站明细信息...");
+                System.out.println("开始生成标签数和票数信息...");
                 FileOutputFormat.setOutputPath(job, new Path(baseDir));
             }else {
-                System.out.println("场站明细信息输出路径已存在,无需再次输出!");
+                System.out.println("标签数和票数输出路径已存在,无需再次输出!");
             }
 
             return job.waitForCompletion(true) ? 0 : 1;
         }
     }
+
 }
