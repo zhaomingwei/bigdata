@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @Description: 件信息
+ * @Description: 件信息（标签信息）
  * @Author: zhaowei
  * @Date: 2020/10/19
  * @Time: 15:46
@@ -20,14 +20,14 @@ import java.sql.SQLException;
 public class Label implements Writable, DBWritable {
 
     /**
-     * 件号(跟票件关系表有关联)
+     * 件号(标签号，跟票件关系表有关联)
      */
     private String LBLID;
 
     /**
-     * 大票货件数(装卸车)
+     * 接收时间
      */
-    private String COUNT;
+    private String RCVMSGDATE;
 
     /**
      * 扫描时间
@@ -35,58 +35,49 @@ public class Label implements Writable, DBWritable {
     private String SCANDATE;
 
     /**
-     * 卸车单号(跟卸车计划表有关联；无计划卸车单没有关联)
+     * 装卸单号(跟卸车计划表有关联；无计划卸车单没有关联)
      */
-    private String UNLDPLANID;
+    private String PLANID;
 
     /**
      * 运单号
      */
     private String CSGNID;
 
-    /**
-     * 用户姓名
-     */
-    private String USRNAME;
-
     @Override
     public void write(DataOutput out) throws IOException {
         Text.writeString(out, this.LBLID);
-        Text.writeString(out, this.COUNT);
+        Text.writeString(out, this.RCVMSGDATE);
         Text.writeString(out, this.SCANDATE);
-        Text.writeString(out, this.UNLDPLANID);
+        Text.writeString(out, this.PLANID);
         Text.writeString(out, this.CSGNID);
-        Text.writeString(out, this.USRNAME);
     }
 
     @Override
     public void readFields(DataInput in) throws IOException {
         this.LBLID = Text.readString(in);
-        this.COUNT = Text.readString(in);
+        this.RCVMSGDATE = Text.readString(in);
         this.SCANDATE = Text.readString(in);
-        this.UNLDPLANID = Text.readString(in);
+        this.PLANID = Text.readString(in);
         this.CSGNID = Text.readString(in);
-        this.USRNAME = Text.readString(in);
     }
 
     @Override
     public void write(PreparedStatement statement) throws SQLException {
         statement.setString(1, LBLID);
-        statement.setString(2, COUNT);
+        statement.setString(2, RCVMSGDATE);
         statement.setString(3, SCANDATE);
-        statement.setString(4, UNLDPLANID);
+        statement.setString(4, PLANID);
         statement.setString(5, CSGNID);
-        statement.setString(6, USRNAME);
     }
 
     @Override
     public void readFields(ResultSet resultSet) throws SQLException {
         this.LBLID = resultSet.getString(1);
-        this.COUNT = resultSet.getString(2);
+        this.RCVMSGDATE = resultSet.getString(2);
         this.SCANDATE = resultSet.getString(3);
-        this.UNLDPLANID = resultSet.getString(4);
+        this.PLANID = resultSet.getString(4);
         this.CSGNID = resultSet.getString(5);
-        this.USRNAME = resultSet.getString(6);
     }
 
     public String getLBLID() {
@@ -97,12 +88,12 @@ public class Label implements Writable, DBWritable {
         this.LBLID = LBLID;
     }
 
-    public String getCOUNT() {
-        return COUNT;
+    public String getRCVMSGDATE() {
+        return RCVMSGDATE;
     }
 
-    public void setCOUNT(String COUNT) {
-        this.COUNT = COUNT;
+    public void setRCVMSGDATE(String RCVMSGDATE) {
+        this.RCVMSGDATE = RCVMSGDATE;
     }
 
     public String getSCANDATE() {
@@ -113,12 +104,13 @@ public class Label implements Writable, DBWritable {
         this.SCANDATE = SCANDATE;
     }
 
-    public String getUNLDPLANID() {
-        return UNLDPLANID;
+
+    public String getPLANID() {
+        return PLANID;
     }
 
-    public void setUNLDPLANID(String UNLDPLANID) {
-        this.UNLDPLANID = UNLDPLANID;
+    public void setPLANID(String PLANID) {
+        this.PLANID = PLANID;
     }
 
     public String getCSGNID() {
@@ -129,23 +121,14 @@ public class Label implements Writable, DBWritable {
         this.CSGNID = CSGNID;
     }
 
-    public String getUSRNAME() {
-        return USRNAME;
-    }
-
-    public void setUSRNAME(String USRNAME) {
-        this.USRNAME = USRNAME;
-    }
-
     @Override
     public String toString() {
         return "Label{" +
                 "LBLID='" + LBLID + '\'' +
-                ", COUNT='" + COUNT + '\'' +
+                ", RCVMSGDATE='" + RCVMSGDATE + '\'' +
                 ", SCANDATE='" + SCANDATE + '\'' +
-                ", UNLDPLANID='" + UNLDPLANID + '\'' +
+                ", PLANID='" + PLANID + '\'' +
                 ", CSGNID='" + CSGNID + '\'' +
-                ", USRNAME='" + USRNAME + '\'' +
                 '}';
     }
 }
