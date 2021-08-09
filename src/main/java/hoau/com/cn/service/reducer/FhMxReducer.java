@@ -116,7 +116,7 @@ public class FhMxReducer extends Reducer<Text, Text, Text, Text> {
                             f.setJHFCSJ(DateUtils.formatDateToString(scsjDay, "yyyy-MM-dd") + " " + timeLineEntity.getDepartureTime());
                         }
                     }
-//                            System.out.println("reduce->:key:" + key + ", value:" + f1.toString());
+//                            System.out.println("FhMxReducer->:key:" + key + ", value:" + f1.toString());
                     context.write(key, new Text(f.getStringContent()));
                 }
             }

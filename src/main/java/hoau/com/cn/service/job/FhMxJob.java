@@ -1,6 +1,6 @@
 package hoau.com.cn.service.job;
 
-import hoau.com.cn.service.format.FilterOutputFormatWithOther;
+import hoau.com.cn.service.format.FilterOutputFormat;
 import hoau.com.cn.service.mapper.FhMxMapper;
 import hoau.com.cn.service.mapper.FhMxOneMapper;
 import hoau.com.cn.service.reducer.FhMxOneReducer;
@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 /**
- * @Description: 效率监控看板-发货Job
+ * @Description: 效率监控看板-发货Job ------ 目前已废弃
  * @Author: zhaowei
  * @Date: 2020/11/27
  * @Time: 13:29
@@ -48,11 +48,11 @@ public class FhMxJob {
             String dateStr = DateUtils.formatDateToString(new Date(), "yyyyMMddHHmmss");
             System.out.println("run:" + Arrays.toString(args));
             /**
-             * @Desc 第一个参数：输出目标文件HDFS路径 如：hdfs://master:9000/report/statistics/dhmxTable
-             *       第二个参数：输出目标文件类型 如：.txt
-             *       第三个参数：输出目标文件中产生的临时文件存放路径 如：hdfs://master:9000/report/dhmx/tmp
-             *       第四个参数：计划发车时间需要用到的时间数据文件存放路径 如：hdfs://master:9000/report/vehicle/arrival/tmp/timeline.josn
-             *       第五个参数：件扫描信息文件路径 如：hdfs://master:9000/report/visualization/dhLabel/dhLabel.txt
+             * @Desc 第一个参数：输出目标文件HDFS路径 如：hdfs://cluster/report/statistics/dhmxTable
+             *       第二个参数：输出目标文件类型 如：.json
+             *       第三个参数：输出目标文件中产生的临时文件存放路径 如：hdfs://cluster/report/dhmx
+             *       第四个参数：计划发车时间需要用到的时间数据文件存放路径 如：hdfs://cluster/report/vehicle/arrival/tmp/timeline.josn
+             *       第五个参数：件扫描信息文件路径 如：hdfs://cluster/report/visualization/dhLabel/dhLabel.json
              *       第六个参数：输入文件路径
              *       ... : 多个输入文件路径
              * 参数不能小于6个
@@ -63,14 +63,14 @@ public class FhMxJob {
             }
             /**最终目标路径**/
             String targetDir = args[0];
-            /**临时目录**/
-            String tmpTargetDir = args[2];
-            /**第一个job输出地址**/
-            String tmp1TargetDir = tmpTargetDir + "/tmp1/" + dateStr;
-            /**第二个job输出地址**/
-            String tmp2TargetDir = tmpTargetDir + "/tmp2/" + dateStr;
             /**文件格式**/
             String outName = args[1];
+            /**临时目录**/
+            String tmpTargetDir = args[2];
+            /**第一个job输出地址,加一个时间戳防止任务失败后临时目录没删除导致任务执行报错**/
+            String tmp1TargetDir = tmpTargetDir + "/tmp1/" + dateStr;
+            /**第二个job输出地址,加一个时间戳防止任务失败后临时目录没删除导致任务执行报错**/
+            String tmp2TargetDir = tmpTargetDir + "/tmp2/" + dateStr;
             /**车辆时刻文件**/
             String timeLine = args[3];
             /**设置此目录是为了拦截时输出到自定义文件里**/
@@ -89,7 +89,7 @@ public class FhMxJob {
             /**reducer的前两个类型要与mapper的后两个类型一致**/
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Text.class);
-            job.setOutputFormatClass(FilterOutputFormatWithOther.class);
+            job.setOutputFormatClass(FilterOutputFormat.class);
             FileOutputFormat.setOutputPath(job, new Path(tmp1TargetDir));
 
             /**可针对不同输入路径指定不同的Mapper，故可以指定不同Mapper处理不同类型的文件：**/
@@ -106,7 +106,7 @@ public class FhMxJob {
             if (flag) {
                 JobConf conf2 = new JobConf(FhMxTool.class);
                 /**设置此目录是为了拦截时输出到自定义文件里**/
-                conf2.set("baseDir", targetDir + "/" + dateStr);
+                conf2.set("baseDir", targetDir);
                 /**设置此目录是为了拦截时输出到自定义文件里**/
                 conf2.set("outName", outName);
                 Job job2 = new Job(conf2, "FhMx_Job");
@@ -116,24 +116,17 @@ public class FhMxJob {
                 job2.setMapperClass(FhMxMapper.class);
                 job2.setReducerClass(FhMxReducer.class);
                 job2.setOutputKeyClass(Text.class);
-                /**LazyOutputFormat-避免输出空文件, FilterOutputFormatWithOther-设置输出文件格式，实现自定义文件名称**/
-                LazyOutputFormat.setOutputFormatClass(job2, FilterOutputFormatWithOther.class);
-                /**可针对不同输入路径指定不同的Mapper，故可以指定不同Mapper处理不同类型的文件：**/
                 FileInputFormat.addInputPath(job2, new Path(tmp1TargetDir + outName));
                 FileInputFormat.addInputPath(job2, new Path(timeLine));
                 /**LazyOutputFormat-避免输出空文件, FilterOutputFormatWithOther-设置输出文件格式，实现自定义文件名称**/
-                LazyOutputFormat.setOutputFormatClass(job2, FilterOutputFormatWithOther.class);
+                LazyOutputFormat.setOutputFormatClass(job2, FilterOutputFormat.class);
                 FileOutputFormat.setOutputPath(job2, new Path(tmp2TargetDir));
                 flag2 = job2.waitForCompletion(true);
                 if(flag2){
                     /**删除mr生成的_SUCCESS及其路径、删除三个输入文件**/
-                    Path path1 = new Path(tmp1TargetDir);
-                    FileSystem fs1 = path1.getFileSystem(conf);
-                    fs1.delete(path1, true);
-
-                    Path path2 = new Path(tmp2TargetDir);
-                    FileSystem fs2 = path2.getFileSystem(conf2);
-                    fs2.delete(path2, true);
+                    Path path = new Path(tmpTargetDir);
+                    FileSystem fs = path.getFileSystem(conf);
+                    fs.delete(path, true);
                 }
             }
             return flag2 ? 0 : 1;

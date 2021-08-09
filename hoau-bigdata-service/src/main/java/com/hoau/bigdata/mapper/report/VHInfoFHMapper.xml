@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hoau.bigdata.mapper.report.VHInfoFHMapper">
+
+    <resultMap id="arrInfoMap" type="com.hoau.bigdata.entity.report.ArrivalInfoTmp">
+        <!--<result column="DEPARTURE_COMPANY_NO" property="departureCompanyNo"/>-->
+        <!--<result column="ARRIVAL_COMPANY_NO" property="arrivalCompanyNo"/>-->
+        <result column="TABLE_FROM" property="tableFrom"/>
+        <result column="FCBH" property="fcbh"/>
+        <result column="ZT" property="zt"/>
+        <result column="TYPE_STATISTICS" property="typeStatistics"/>
+        <result column="CPH" property="cph"/>
+        <result column="CXMS" property="cxms"/>
+        <result column="DRIVER" property="driver"/>
+        <result column="ADDRESS_GOODS_LOAD" property="addressGoodsLoad"/>
+        <result column="ADDRESS_GOODS_UNLOAD" property="addressGoodsUnload"/>
+        <result column="POOLS" property="pools"/>
+        <result column="NUM_GOODS" property="numGoods"/>
+        <result column="WEIGHT" property="weight"/>
+        <result column="VOLUME" property="volume"/>
+        <result column="TIME_TRUE" property="timeTrue"/>
+        <result column="SCSJ" property="scsj"/>
+        <result column="FCSJ" property="fcsj"/>
+        <result column="XCDH" property="xcdh"/>
+        <result column="GSBH_GOODS_LOAD" property="gsbhGoodsLoad"/>
+        <result column="GSBH_GOODS_UNLOAD" property="gsbhGoodsUnload"/>
+        <result column="GLS" property="gls"/>
+        <result column="NAME_LINE" property="nameLine"/>
+        <result column="REMARK" property="remark"/>
+    </resultMap>
+    <resultMap id="timeLintMap" type="com.hoau.bigdata.entity.report.TimeLineEntity">
+        <!--<result column="DEPARTURE_COMPANY_NO" property="departureCompanyNo"/>-->
+        <!--<result column="ARRIVAL_COMPANY_NO" property="arrivalCompanyNo"/>-->
+        <result column="TRANSIT_TIME" property="transitTime"/>
+        <result column="DEPARTURE_TIME" property="departureTime"/>
+        <result column="NAME_LINE" property="nameLine"/>
+        <result column="TIME_WAY_ALL" property="timeWayAll"/>
+        <result column="TIME_WAY" property="timeWay"/>
+        <result column="TIME_DEPART" property="timeDepart"/>
+        <result column="TIME_INTERRUPT" property="timeInterrupt"/>
+        <result column="TODAY_OR_TOMORROW" property="todayOrTomorrow"/>
+    </resultMap>
+
+    <!--查询1分钟内++上转移++到货数据-->
+    <select id="getSZYDH" resultMap="arrInfoMap">
+        SELECT
+        'LD_SZYFH' TABLE_FROM,
+        FH.FCBH,
+        MAX (FH.ZT) ZT,
+        '取派' TYPE_STATISTICS,
+        FH.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (FH.SJXM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (FCDGS.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (DCDGS.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (FH.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (FH.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (FH.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FH.XCDH) XCDH,
+        MAX (FH.GSBH) GSBH_GOODS_LOAD,
+        MAX (FH.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        MAX (FH.FCBH),
+        0,
+        INSTR (FH.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        <!--MAX (FH.FCSM) REMARK-->
+        FROM
+        HYDATA.LD_SZYFH FH
+        LEFT JOIN HYDATA.LD_SZYMX MX ON HYDATA.FH.FCBH = MX.FCBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON FH.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_GS FCDGS ON FH.GSBH = FCDGS.GSBH
+        LEFT JOIN HYDATA.LD_GS DCDGS ON FH.MDDGS = DCDGS.GSBH
+        LEFT JOIN HYDATA.LD_XLJL XL ON (XL.QYD = FH.GSBH
+        AND XL.MDD = FH.MDDGS)
+        WHERE
+        FH.RECORD_DATE <![CDATA[ >= ]]> SYSDATE - 1 / (24 * 60)
+        AND FH.RECORD_DATE <![CDATA[ < ]]> SYSDATE
+        GROUP BY
+        FH.FCBH,
+        FH.CPH
+    </select>
+
+    <!--查询1分钟内++长途到货++数据-->
+    <select id="getCTDH" resultMap="arrInfoMap">
+        SELECT
+        'LD_FHCLQK' TABLE_FROM,
+        QK.FCBH,
+        MAX (FD.ZT) ZT,
+        '干线' TYPE_STATISTICS,
+        QK.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (SJ.XM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (SHD.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (XHD.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (QK.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (QK.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (QK.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FD.XCDH) XCDH,
+        MAX (QK.GSBH) GSBH_GOODS_LOAD,
+        MAX (QK.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        QK.FCBH,
+        0,
+        INSTR (QK.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        <!--MAX (QK.FCSM) REMARK-->
+        FROM
+        HYDATA.LD_FHCLQK QK
+        JOIN HYDATA.LD_FHD FD ON FD.FCBH = QK.FCBH
+        LEFT JOIN HYDATA.LD_FHDMX MX ON FD.FHDBH = MX.FHDBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON QK.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_GS SHD ON SHD.GSBH = QK.GSBH
+        LEFT JOIN HYDATA.LD_GS XHD ON XHD.GSBH = QK.MDDGS
+        LEFT JOIN HYDATA.LD_XLJL XL ON (
+        XL.QYD = QK.GSBH
+        AND XL.MDD = QK.MDDGS
+        )
+        WHERE
+        <!-- 生成时间当天所有状态纳入统计范围 -->
+        QK.ZT IN (1, 2, 3)
+        AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+        <!-- 长途直发 -->
+        AND QK.MDDGS = FD.GSBH
+        AND QK.RECORD_DATE <![CDATA[ >= ]]> SYSDATE - 1 / (24 * 60)
+        AND QK.RECORD_DATE <![CDATA[ < ]]> SYSDATE
+        GROUP BY
+        QK.FCBH,
+        QK.CPH
+    </select>
+
+    <!--查询1分钟内++中转到货++数据-->
+    <select id="getZZDH" resultMap="arrInfoMap">
+        SELECT
+        'LD_FHCLQK_ZZDH' TABLE_FROM,
+        QK.FCBH,
+        MAX (FD.ZT) ZT,
+        '干线(中转)' TYPE_STATISTICS,
+        QK.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (SJ.XM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (SHD.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (XHD.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (QK.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (QK.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (QK.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FD.XCDH) XCDH,
+        MAX (QK.GSBH) GSBH_GOODS_LOAD,
+        MAX (QK.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        QK.FCBH,
+        0,
+        INSTR (QK.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        <!-- MAX (QK.FCSM) REMARK-->
+        FROM
+        HYDATA.LD_FHD FD
+        JOIN HYDATA.LD_FHCLQK QK ON QK.FCBH = FD.FCBH
+        JOIN HYDATA.LD_CLTJD TJ ON TJ.FCBH = FD.FCBH
+        LEFT JOIN HYDATA.LD_FHDMX MX ON FD.FHDBH = MX.FHDBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON QK.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_GS SHD ON SHD.GSBH = QK.GSBH
+        LEFT JOIN HYDATA.LD_GS XHD ON XHD.GSBH = QK.MDDGS
+        LEFT JOIN HYDATA.LD_XLJL XL ON (
+        XL.QYD = QK.GSBH
+        AND XL.MDD = QK.MDDGS
+        )
+        WHERE
+        QK.ZT IN (0, 1, 2, 3)
+        <!-- 途径地发货,生成公司为途径地 -->
+        AND FD.GSBH = TJ.GSBH
+        AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+        AND QK.RECORD_DATE <![CDATA[ >= ]]> SYSDATE - 1 / (24 * 60)
+        AND QK.RECORD_DATE <![CDATA[ < ]]> SYSDATE
+        GROUP BY
+        QK.FCBH,
+        QK.CPH
+    </select>
+
+    <!--上转移到货线路时间拉取-->
+    <select id="szyLineTime" resultMap="timeLintMap">
+    SELECT
+        DEPARTURE_COMPANY_NO || ARRIVAL_COMPANY_NO NAME_LINE,
+        TRANSIT_TIME,
+        DEPARTURE_TIME
+    FROM
+        (
+            SELECT
+                T .*, ROW_NUMBER () OVER (
+                    PARTITION BY T .DEPARTURE_COMPANY_NO,
+                    T .ARRIVAL_COMPANY_NO
+                ORDER BY
+                    T .VERSION_NO DESC
+                ) AS CODE_ID
+            FROM
+                BUTTERFLY.T_TY_BSE_TFR_TIME T
+            WHERE
+                T .ACTIVE = 'Y'
+            AND T .LINE_CODE IN (
+                SELECT
+                    ID
+                FROM
+                    BUTTERFLY.T_TY_BSE_TFR_LINE TF
+                WHERE
+                    TF.ACTIVE = 'Y'
+            )
+        )
+    WHERE
+	    CODE_ID = 1
+    </select>
+
+    <!--长途到货线路时间拉取-->
+    <select id="ctLineTime" resultMap="timeLintMap">
+    SELECT
+        NAME_LINE,
+        TIME_WAY_ALL,
+        TIME_WAY,
+        TIME_DEPART,
+        TIME_INTERRUPT,
+        TODAY_OR_TOMORROW
+    FROM
+        DCQUERY.TIME_LINE_DEPART
+    WHERE
+        CLASSES = 1
+    </select>
+
+    <!--备用根据时间范围抽取数据-start-->
+    <!--上转移++到货数据-->
+    <select id="getSZYDHBack" resultMap="arrInfoMap">
+        SELECT
+        'LD_SZYFH' TABLE_FROM,
+        FH.FCBH,
+        MAX (FH.ZT) ZT,
+        '取派' TYPE_STATISTICS,
+        FH.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (FH.SJXM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (FCDGS.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (DCDGS.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (FH.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (FH.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (FH.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FH.XCDH) XCDH,
+        MAX (FH.GSBH) GSBH_GOODS_LOAD,
+        MAX (FH.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        MAX (FH.FCBH),
+        0,
+        INSTR (FH.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        FROM
+        HYDATA.LD_SZYFH FH
+        LEFT JOIN HYDATA.LD_SZYMX MX ON HYDATA.FH.FCBH = MX.FCBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON FH.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_GS FCDGS ON FH.GSBH = FCDGS.GSBH
+        LEFT JOIN HYDATA.LD_GS DCDGS ON FH.MDDGS = DCDGS.GSBH
+        LEFT JOIN HYDATA.LD_XLJL XL ON (XL.QYD = FH.GSBH
+        AND XL.MDD = FH.MDDGS)
+        WHERE
+        FH.RECORD_DATE <![CDATA[ >= ]]> to_date(#{start},'yyyy-mm-dd hh24:mi:ss')
+        AND FH.RECORD_DATE <![CDATA[ < ]]> to_date(#{end},'yyyy-mm-dd hh24:mi:ss')
+        GROUP BY
+        FH.FCBH,
+        FH.CPH
+    </select>
+
+    <!--长途到货++数据-->
+    <select id="getCTDHBack" resultMap="arrInfoMap">
+        SELECT
+        'LD_FHCLQK' TABLE_FROM,
+        QK.FCBH,
+        MAX (FD.ZT) ZT,
+        '干线' TYPE_STATISTICS,
+        QK.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (SJ.XM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (SHD.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (XHD.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (QK.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (QK.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (QK.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FD.XCDH) XCDH,
+        MAX (QK.GSBH) GSBH_GOODS_LOAD,
+        MAX (QK.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        QK.FCBH,
+        0,
+        INSTR (QK.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        FROM
+        HYDATA.LD_FHCLQK QK
+        JOIN HYDATA.LD_FHD FD ON FD.FCBH = QK.FCBH
+        LEFT JOIN HYDATA.LD_FHDMX MX ON FD.FHDBH = MX.FHDBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON QK.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_GS SHD ON SHD.GSBH = QK.GSBH
+        LEFT JOIN HYDATA.LD_GS XHD ON XHD.GSBH = QK.MDDGS
+        LEFT JOIN HYDATA.LD_XLJL XL ON (
+        XL.QYD = QK.GSBH
+        AND XL.MDD = QK.MDDGS
+        )
+        WHERE
+        QK.ZT IN (1, 2, 3)
+        AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+        AND QK.MDDGS = FD.GSBH
+        AND QK.RECORD_DATE <![CDATA[ >= ]]> to_date(#{start},'yyyy-mm-dd hh24:mi:ss')
+        AND QK.RECORD_DATE <![CDATA[ < ]]> to_date(#{end},'yyyy-mm-dd hh24:mi:ss')
+        GROUP BY
+        QK.FCBH,
+        QK.CPH
+    </select>
+
+    <!--中转到货++数据-->
+    <select id="getZZDHBack" resultMap="arrInfoMap">
+        SELECT
+        'LD_FHCLQK_ZZDH' TABLE_FROM,
+        QK.FCBH,
+        MAX (FD.ZT) ZT,
+        '干线(中转)' TYPE_STATISTICS,
+        QK.CPH,
+        MAX (CX.CXMS) CXMS,
+        REGEXP_REPLACE (
+        MAX (SJ.XM),
+        '^[0-9A-ZA-Z]*',
+        ''
+        ) DRIVER,
+        MAX (SHD.GSJC) ADDRESS_GOODS_LOAD,
+        MAX (XHD.GSJC) ADDRESS_GOODS_UNLOAD,
+        COUNT (MX.YDBH) POOLS,
+        SUM (YD.JS) NUM_GOODS,
+        SUM (YD.ZL) WEIGHT,
+        SUM (YD.TJ) VOLUME,
+        TO_CHAR (
+        MAX (QK.ZHDDSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS TIME_TRUE,
+        TO_CHAR (
+        MAX (QK.SCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS SCSJ,
+        TO_CHAR (
+        MAX (QK.FCSJ),
+        'yyyy-mm-dd hh24:mi:ss'
+        ) AS FCSJ,
+        MAX (FD.XCDH) XCDH,
+        MAX (QK.GSBH) GSBH_GOODS_LOAD,
+        MAX (QK.MDDGS) GSBH_GOODS_UNLOAD,
+        MAX (XL.GLS) GLS,
+        SUBSTR (
+        QK.FCBH,
+        0,
+        INSTR (QK.FCBH, '-', 1) - 1
+        ) NAME_LINE
+        FROM
+        HYDATA.LD_FHD FD
+        JOIN HYDATA.LD_FHCLQK QK ON QK.FCBH = FD.FCBH
+        JOIN HYDATA.LD_CLTJD TJ ON TJ.FCBH = FD.FCBH
+        LEFT JOIN HYDATA.LD_FHDMX MX ON FD.FHDBH = MX.FHDBH
+        LEFT JOIN HYDATA.LD_YD YD ON MX.YDBH = YD.YDBH
+        LEFT JOIN HYDATA.LD_CX CX ON QK.CX = CX.CXBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_SJXX SJ ON QK.RYBH = SJ.RYBH
+        LEFT JOIN HYDATA.LD_GS SHD ON SHD.GSBH = QK.GSBH
+        LEFT JOIN HYDATA.LD_GS XHD ON XHD.GSBH = QK.MDDGS
+        LEFT JOIN HYDATA.LD_XLJL XL ON (
+        XL.QYD = QK.GSBH
+        AND XL.MDD = QK.MDDGS
+        )
+        WHERE
+        QK.ZT IN (0, 1, 2, 3)
+        AND FD.GSBH = TJ.GSBH
+        AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+        AND QK.RECORD_DATE <![CDATA[ >= ]]> to_date(#{start},'yyyy-mm-dd hh24:mi:ss')
+        AND QK.RECORD_DATE <![CDATA[ < ]]> to_date(#{end},'yyyy-mm-dd hh24:mi:ss')
+        GROUP BY
+        QK.FCBH,
+        QK.CPH
+    </select>
+    <!--备用根据时间范围抽取数据-end-->
+
+</mapper>

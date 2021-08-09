@@ -45,7 +45,7 @@ public class FhMxMapper extends Mapper<LongWritable, Text, Text, Text> {
                 sb.append(timeLineEntity.getNameLine() == null ? "" : timeLineEntity.getNameLine().trim());
                 k.set(sb.toString());
             }
-//            System.out.println("mapper->:key:" + key + ", value:" + val);
+//            System.out.println("FhMxMapper->:key:" + key + ", value:" + val);
             context.write(k, value);
         }catch (Exception e){
             System.out.println("FhMxMapper-exception:" + e);

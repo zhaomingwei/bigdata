@@ -66,7 +66,7 @@ public class DhMxReducer extends Reducer<Text, Text, Text, Text> {
                             f1.setLBLID(f2.getLBLID());
                             f1.setRCVMSGDATE(f2.getRCVMSGDATE());
                             f1.setSCANDATE(f2.getSCANDATE());
-//                            System.out.println("reduce->:key:" + key + ", value:" + f1.toString());
+//                            System.out.println("DhMxReducer->:key:" + key + ", value:" + f1.toString());
                             context.write(key, new Text(f1.getStringContent()));
                         }
                     }
@@ -77,13 +77,13 @@ public class DhMxReducer extends Reducer<Text, Text, Text, Text> {
                         f.setLBLID("");
                         f.setRCVMSGDATE("");
                         f.setSCANDATE("");
-//                        System.out.println("reduce->:key:" + key + ", value:" + f.toString());
+//                        System.out.println("DhMxReducer->:key:" + key + ", value:" + f.toString());
                         context.write(key, new Text(f.getStringContent()));
                     }
                 }
             }
         } catch (Exception e) {
-            System.out.println("FhMxAndDhMxReducer->exception:" + e);
+            System.out.println("DhMxReducer->exception:" + e);
         }
     }
 

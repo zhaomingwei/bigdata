@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hoau.bigdata.mapper.report.TrackDao">
+
+
+    <select id="queryOutWardBill" resultType="com.hoau.bigdata.entity.track.OutWardBillEntity">
+        SELECT
+        W.YDBH as waybillNo,
+        TO_CHAR(W.WFDSCSJ, 'yyyy-MM-dd hh24:mi:ss') as generationDate,
+        ( SELECT GSJC FROM HYDATA.LD_GS G WHERE G.GSBH = D.GSBH ) AS unloadingPlace,
+	    ( SELECT GSJC FROM HYDATA.LD_GS G WHERE G.GSBH = D.SCGSBH ) AS generationCompany,
+	    '1' AS stateType,
+	    NVL(yd.CYRQZ,0) AS transferType,
+        F.zclx as loadType
+        FROM
+        HYDATA.LD_WFD W
+        LEFT JOIN HYDATA.LD_FHCLQK F ON W.fcbh = F.fcbh
+        LEFT JOIN HYDATA.LD_FHD D ON D.fcbh = W.fcbh
+        LEFT JOIN HYDATA.LD_YD YD ON YD.ydbh = W.YDBH
+        WHERE
+        W.ZT != 3
+        AND F.Zclx IN ( '2', '12' )
+        <![CDATA[
+        AND W.WFDSCSJ < SYSDATE
+        AND  W.WFDSCSJ >= SYSDATE- #{sec} / (1440 * 60) ]]>
+
+    </select>
+
+    <select id="queryReceiptRegistration" resultType="com.hoau.bigdata.entity.track.ReceiptRegistrationEntity">
+        SELECT
+        ( SELECT GSJC FROM HYDATA.LD_GS G WHERE G.GSBH = d.GSBH ) AS generationCompany,
+        d.YDBH as waybillNo,
+        '2' AS stateType,
+        NVL(yd.CYRQZ,0) AS transferType,
+        TO_CHAR( d.KHQSSJ, 'yyyy-MM-dd hh24:mi:ss' ) AS recordTime
+        FROM
+        HYDATA.LD_HDDJ D
+        LEFT JOIN HYDATA.LD_YD YD ON YD.ydbh = D.YDBH
+        WHERE
+        <![CDATA[
+        d.KHQSSJ < SYSDATE
+        AND d.KHQSSJ >= SYSDATE- #{sec} / (1440 * 60) ]]>
+    </select>
+
+    <select id="queryGoodsTransfer" resultType="com.hoau.bigdata.entity.track.GoodsTransferEntity">
+        SELECT
+            WAYBILL_NO as waybillNo,
+            TO_CHAR( CREATE_TIME, 'yyyy-MM-dd hh24:mi:ss' ) AS recordTime,
+            '3' AS stateType,
+            ( SELECT GSJC FROM HYDATA.LD_GS G WHERE G.GSBH = TRANSFER_CORP ) AS transferCompany
+        FROM
+            BUTTERFLY.T_STOCK_GOODS_TRANSFER
+        WHERE
+            <![CDATA[
+            CREATE_TIME < SYSDATE
+            AND CREATE_TIME >= SYSDATE- #{sec} / (1440 * 60) ]]>
+    </select>
+
+    <select id="queryEasyInstall" resultType="com.hoau.bigdata.entity.track.EasyInstallEntity">
+        SELECT
+            WAYBILL_NO as waybillNo,
+            INSTALLATION_STATUS as installationStatus,
+            '4' AS stateType,
+            TO_CHAR( OPERATE_TIME, 'yyyy-MM-dd hh24:mi:ss' ) AS recordTime
+        FROM
+            butterfly.T_TFR_INSTALLATION_TRAJECTORY
+        WHERE
+            <![CDATA[
+            OPERATE_TIME < SYSDATE
+            AND OPERATE_TIME >= SYSDATE- #{sec} / (1440 * 60) ]]>
+            AND INSTALLATION_STATUS = '安装预约' UNION ALL
+        SELECT
+            WAYBILL_NO as waybillNo,
+            INSTALLATION_STATUS as installationStatus,
+            '4' AS stateType,
+            TO_CHAR( OPERATE_TIME, 'yyyy-MM-dd hh24:mi:ss' ) AS recordTime
+        FROM
+            butterfly.T_TFR_INSTALLATION_TRAJECTORY
+        WHERE
+            INSTALLATION_STATUS = '安装完成'
+            <![CDATA[
+            AND OPERATE_TIME < SYSDATE
+            AND OPERATE_TIME >= SYSDATE- #{sec} / (1440 * 60) ]]>
+    </select>
+
+</mapper>

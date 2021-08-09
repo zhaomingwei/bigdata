@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hoau.bigdata.mapper.drill.DrillMapper">
+
+    <select id="dhtjQuery" parameterType="com.hoau.bigdata.entity.DhtjQuery"
+            resultType="com.hoau.bigdata.entity.drill.FhdmxEntity">
+        SELECT tjgs,
+               fcbh,
+               cph,
+               fcgs,
+               dcgs,
+               max(zt) AS zt,
+               case
+                   when max(js) = 0
+                   then 0
+                   when max(js) > 0
+                   then round(sum(lblids) / max(js), 4)
+               end as sml,
+               case
+                   when max(js) = 0
+                   then 0
+                   when max(js) > 0
+                   then round(sum(lblids) / max(js), 4)
+               end as xcwcl,
+               max(js) AS js,
+               round(max(tj), 2) AS tj,
+               round(max(zl), 2) AS zl,
+               min(kssmsj) AS kssmsj,
+               max(jssmsj) AS jssmsj,
+               max(tjsj) AS tjsj
+          FROM (SELECT tjgs,
+                       fcbh,
+                       cph,
+                       shgs,
+                       zxdh,
+                       fcgs,
+                       dcgs,
+                       xhgs,
+                       ydbh,
+                       cast(count(lblid) AS DOUBLE) AS lblids,
+                       max(zt) AS zt,
+                       cast(max(NVL(tjs, 0)) AS DOUBLE) AS js,
+                       max(NVL(tzl, 0.00)) AS zl,
+                       max(NVL(ttj, 0.00)) AS tj,
+                       min(scandate) AS kssmsj,
+                       max(scandate) AS jssmsj,
+                       max(tjsj) AS tjsj
+                  FROM (SELECT
+                            *
+                        FROM myhive.report.dhmxtable
+                        WHERE dt=('${toDay}')
+                        UNION ALL
+                        SELECT
+                            *
+                        FROM myhive.report.dhmxtable
+                        WHERE dt=('${yesterday}')
+                        UNION ALL
+                        SELECT
+                            *
+                        FROM myhive.report.dhmxtable
+                        WHERE dt=('${beforeYesterday}')
+                      )
+                 WHERE xhgs = '${xhgs}'
+                 GROUP BY ydbh, tjgs, fcbh, cph, shgs, zxdh, fcgs, dcgs, xhgs) a
+         GROUP BY tjgs, fcbh, cph, fcgs, dcgs
+         ORDER BY tjsj DESC
+    </select>
+
+    <select id="fhtjQuery" parameterType="java.util.Map"
+            resultType="com.hoau.bigdata.entity.drill.FhdmxEntity">
+        SELECT tjgs,
+               fcbh,
+               cph,
+               fcgs,
+               dcgs,
+               jhfcsj,
+               max(js)                         AS js,
+               max(tj)                         AS tj,
+               max(zl)                         AS zl,
+               sum(lblids)                     AS lblids,
+               case
+                   when max(js) = 0
+                       then 0
+                   when max(js) > 0
+                       then round(sum(lblids) / max(js), 4)
+                   end as sml,
+               case
+                   when max(js) = 0
+                       then 0
+                   when max(js) > 0
+                       then round(sum(lblids) / max(js), 4)
+                   end as xcwcl,
+               max(zt)                         AS zt,
+               min(kssmsj)                     AS kssmsj,
+               max(jssmsj)                     AS jssmsj,
+               max(tjsj)                       AS tjsj
+        FROM (
+                 SELECT tjgs,
+                        fcbh,
+                        cph,
+                        fcgs,
+                        dcgs,
+                        jhfcsj,
+                        zt,
+                        round((first_value(js) over (partition by fcbh order by currenttime desc)), 2) AS js,
+                        round((first_value(tj) over (partition by fcbh order by currenttime desc)), 2) AS tj,
+                        round((first_value(zl) over (partition by fcbh order by currenttime desc)), 2) AS zl,
+                        lblids                                                                         AS lblids,
+                        kssmsj                                                                         AS kssmsj,
+                        jssmsj                                                                         AS jssmsj,
+                        tjsj                                                                           AS tjsj
+                 FROM (SELECT tjgs,
+                              fcbh,
+                              cph,
+                              shgs,
+                              zxdh,
+                              fcgs,
+                              dcgs,
+                              jhfcsj,
+                              xhgs,
+                              ydbh,
+                              currenttime,
+                              cast(count(lblid) AS DOUBLE)     AS lblids,
+                              max(zt)                          AS zt,
+                              cast(max(NVL(tjs, 0)) AS DOUBLE) AS js,
+                              max(NVL(tzl, 0.00))              AS zl,
+                              max(NVL(ttj, 0.00))              AS tj,
+                              min(scandate)                    AS kssmsj,
+                              max(scandate)                    AS jssmsj,
+                              max(tjsj)                        AS tjsj
+                       FROM (SELECT
+                                    *
+                             FROM myhive.report.fhmxtable
+                                WHERE dt=('${toDay}')
+                             UNION ALL
+                             SELECT
+                                    *
+                             FROM myhive.report.fhmxtable
+                                WHERE dt=('${yesterday}')
+                             UNION ALL
+                             SELECT
+                                    *
+                             FROM myhive.report.fhmxtable
+                                WHERE dt=('${beforeYesterday}')
+                            )
+                       WHERE SHGS = '${shgs}'
+                       GROUP BY ydbh, tjgs, fcbh, cph, shgs, zxdh, fcgs, dcgs, xhgs, jhfcsj, currenttime)
+             )
+        GROUP BY tjgs, fcbh, cph, fcgs, dcgs, jhfcsj
+        ORDER BY tjsj DESC
+    </select>
+
+    <!--车辆信息，到货查询-->
+    <select id="clxxdhQuery" parameterType="com.hoau.bigdata.entity.DhtjQuery"
+            resultType="com.hoau.bigdata.entity.drill.ArrivalInfo">
+        SELECT
+        fcbh,
+        zt,
+        typeStatistics,
+        cph,
+        pools,
+        numGoods,
+        weight,
+        VOLUME,
+        fcsj,
+        gfcsj,
+        cxms,
+        driver,
+        addressGoodsLoad,
+        addressGoodsUnload,
+        gsbhGoodsLoad,
+        gsbhGoodsUnload,
+        gls,
+        timePlan,
+        timeTrue,
+        timeDelay,
+        remark,
+        crossingStop
+        FROM
+        (
+        SELECT
+        fcbh,
+        zt,
+        typeStatistics,
+        cph,
+        sum(pools) over (PARTITION BY cph, gfcsj) AS pools,
+        sum(numGoods) over (PARTITION BY cph, gfcsj) AS numGoods,
+        sum(weight) over (PARTITION BY cph, gfcsj) AS weight,
+        sum(VOLUME) over (PARTITION BY cph, gfcsj) AS VOLUME,
+        fcsj,
+        gfcsj,
+        cxms,
+        driver,
+        addressGoodsLoad,
+        addressGoodsUnload,
+        gsbhGoodsLoad,
+        gsbhGoodsUnload,
+        gls,
+        timePlan,
+        timeTrue,
+        timeDelay,
+        remark,
+        crossingStop,
+        row_num
+        FROM
+        (
+        SELECT
+        fcbh,
+        zt,
+        typeStatistics,
+        cph,
+        row_number () over (
+        PARTITION BY cph,
+        gfcsj
+        ORDER BY
+        gfcsj DESC
+        ) AS row_num,
+        pools,
+        numGoods,
+        weight,
+        VOLUME,
+        fcsj,
+        gfcsj,
+        cxms,
+        driver,
+        addressGoodsLoad,
+        addressGoodsUnload,
+        gsbhGoodsLoad,
+        gsbhGoodsUnload,
+        gls,
+        timePlan,
+        timeTrue,
+        timeDelay,
+        remark,
+        crossingStop
+        FROM
+        (
+        SELECT
+        fcbh,
+        MAX(zt) AS zt,
+        MAX(typeStatistics) AS typeStatistics,
+        cph,
+        TO_CHAR (
+        TO_DATE (
+        substr(fcsj, 1, 10),
+        'yyyy-MM-dd'
+        ),
+        'yyyy-MM-dd'
+        ) AS gfcsj,
+        MAX(cxms) AS cxms,
+        MAX(driver) AS driver,
+        MAX(addressGoodsLoad) AS addressGoodsLoad,
+        MAX(addressGoodsUnload) AS addressGoodsUnload,
+        MAX(pools) AS pools,
+        MAX(numGoods) AS numGoods,
+        MAX(weight) AS weight,
+        MAX(VOLUME) AS VOLUME,
+        MAX(timePlan) AS timePlan,
+        fcsj,
+        MAX(gsbhGoodsLoad) AS gsbhGoodsLoad,
+        MAX(gsbhGoodsUnload) AS gsbhGoodsUnload,
+        MAX(gls) AS gls,
+        MAX(timeTrue) AS timeTrue,
+        MAX(timeDelay) AS timeDelay,
+        MAX(remark) AS remark,
+        MAX(crossingStop) AS crossingStop
+        FROM
+        myhive.report.clxxdhtable
+        WHERE
+        gsbhGoodsUnload = ${xhgs}
+        AND datediff(
+        from_unixtime(
+        unix_timestamp(),
+        'yyyy-MM-dd'
+        ),
+        fcsj
+        ) <![CDATA[ < ]]> 3
+        GROUP BY
+        fcbh,
+        cph,
+        fcsj
+        ) tt
+        ) ts
+        ) td
+        WHERE
+        td.row_num = 1
+        ORDER BY
+        td.fcsj DESC
+    </select>
+
+    <!-- 根据发车编号查询扫描记录-->
+    <select id="dhtjQueryByFcbh" resultType="string">
+        SELECT
+        fcbh
+        FROM
+        myhive.report.dhmxtable
+        WHERE
+        lblid IS NOT NULL
+        AND fcbh IN
+        <foreach collection="list" open="(" close=")" item="item"
+                 separator="," index="index">
+            '${item}'
+        </foreach>
+        group by
+        fcbh
+    </select>
+
+</mapper>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hoau.bigdata.mapper.report.DhMxDao">
+
+    <!--查询1分钟内（包括一分钟）在途、卸车完成状态到货明细列表-->
+    <select id="queryInTimeDhMxList" parameterType="int" resultType="com.hoau.bigdata.entity.report.FhMxAndDhMx">
+          SELECT FH.FCBH,
+               TRIM(QK.CPH) CPH,
+               FH.SCGSBH SHGS,
+               FH.GSBH XHGS,
+               TJGS.GSJC TJGS,
+               FH.XCDH ZXDH,
+               FH.ZT,
+               CASE FH.ZT
+                 WHEN 2 THEN TO_CHAR(FH.DDSJ, 'yyyy-MM-dd')
+                 WHEN 3 THEN TO_CHAR(FH.XCWCSJ, 'yyyy-MM-dd')
+               END AS TJSJ,
+               QK.GSBH FCGS,
+               QK.MDDGS DCGS,
+               MX.JHCKJS,
+               MX.SJCKJS,
+               MX.YDBH,
+               YD.ZL,
+               YD.JS,
+               YD.TJ,
+               '1' TAG
+          FROM HYDATA.LD_FHD FH
+          LEFT JOIN HYDATA.LD_FHCLQK QK
+            ON QK.FCBH = FH.FCBH
+          LEFT JOIN HYDATA.LD_FHDMX MX
+            ON MX.FHDBH = FH.FHDBH
+          LEFT JOIN HYDATA.LD_YD YD
+            ON YD.YDBH = MX.YDBH
+          LEFT JOIN HYDATA.LD_GS TJGS
+            ON TJGS.GSBH = FH.GSBH
+         WHERE FH.DDSJ &gt;= SYSDATE - #{sec} / (1440 * 60)
+           AND FH.ZT IN (1, 2, 3)
+           AND FH.XCDH IS NOT NULL
+           AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+    </select>
+
+    <!--查询1分钟之前2天之内在途、卸车完成状态到货明细列表-->
+    <select id="queryOutTimeDhMxList" parameterType="int" resultType="com.hoau.bigdata.entity.report.FhMxAndDhMx">
+          SELECT FH.FCBH,
+               TRIM(QK.CPH) CPH,
+               FH.SCGSBH SHGS,
+               FH.GSBH XHGS,
+               TJGS.GSJC TJGS,
+               FH.XCDH ZXDH,
+               FH.ZT,
+               CASE FH.ZT
+                 WHEN 2 THEN TO_CHAR(FH.DDSJ, 'yyyy-MM-dd')
+                 WHEN 3 THEN TO_CHAR(FH.XCWCSJ, 'yyyy-MM-dd')
+               END AS TJSJ,
+               QK.GSBH FCGS,
+               QK.MDDGS DCGS,
+               MX.JHCKJS,
+               MX.SJCKJS,
+               MX.YDBH,
+               YD.ZL,
+               YD.JS,
+               YD.TJ,
+               '2' TAG
+          FROM HYDATA.LD_FHD FH
+          LEFT JOIN HYDATA.LD_FHCLQK QK
+            ON QK.FCBH = FH.FCBH
+          LEFT JOIN HYDATA.LD_FHDMX MX
+            ON MX.FHDBH = FH.FHDBH
+          LEFT JOIN HYDATA.LD_YD YD
+            ON YD.YDBH = MX.YDBH
+          LEFT JOIN HYDATA.LD_GS TJGS
+            ON TJGS.GSBH = FH.GSBH
+         WHERE FH.DDSJ >= TRUNC(SYSDATE) - #{day}
+           AND FH.DDSJ &lt; SYSDATE - #{sec} / (1440 * 60)
+           AND FH.ZT IN (1, 2, 3)
+           AND FH.XCDH IS NOT NULL
+           AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+    </select>
+
+    <!--上转移到货：查询1分钟内（包括一分钟）在途、卸车完成状态到货明细列表-->
+    <select id="queryInTimeSZYDhMxList" parameterType="int" resultType="com.hoau.bigdata.entity.report.FhMxAndDhMx">
+        SELECT FH.FCBH,
+               TRIM(FH.CPH) CPH,
+               FH.GSBH SHGS,
+               FH.MDDGS XHGS,
+               TJGS.GSJC TJGS,
+               FH.XCDH ZXDH,
+               FH.ZT,
+               TO_CHAR(FH.FCSJ, 'yyyy-MM-dd hh24:mi:ss') FCSJ,
+               TO_CHAR(FH.SCSJ, 'yyyy-MM-dd hh24:mi:ss') SCSJ,
+               FH.ZCWCSJ,
+               TO_CHAR(FH.SCSJ, 'yyyy-MM-dd') TJSJ,
+               FH.GSBH || FH.MDDGS NAMELINE,
+               FH.GSBH FCGS,
+               FH.MDDGS DCGS,
+               MX.JHCKJS,
+               MX.SJCKJS,
+               MX.YDBH,
+               YD.ZL,
+               YD.JS,
+               YD.TJ,
+               '1' TAG
+          FROM HYDATA.LD_SZYFH FH
+          LEFT JOIN HYDATA.LD_SZYMX MX
+            ON FH.FCBH = MX.FCBH
+          LEFT JOIN HYDATA.LD_YD YD
+            ON YD.YDBH = MX.YDBH
+          LEFT JOIN HYDATA.LD_GS TJGS
+            ON TJGS.GSBH = FH.MDDGS
+         WHERE FH.FCSJ &gt;= SYSDATE - #{sec} / (1440 * 60)
+           AND FH.ZT IN (1, 2, 3)
+           AND FH.XCDH IS NOT NULL
+    </select>
+
+    <!--上转移到货：查询1分钟之前2天之内在途、卸车完成状态发货明细列表-->
+    <select id="queryOutTimeSZYDhMxList" parameterType="int" resultType="com.hoau.bigdata.entity.report.FhMxAndDhMx">
+          SELECT FH.FCBH,
+               TRIM(FH.CPH) CPH,
+               FH.GSBH SHGS,
+               FH.MDDGS XHGS,
+               TJGS.GSJC TJGS,
+               FH.XCDH ZXDH,
+               FH.ZT,
+               TO_CHAR(FH.FCSJ, 'yyyy-MM-dd hh24:mi:ss') FCSJ,
+               TO_CHAR(FH.SCSJ, 'yyyy-MM-dd hh24:mi:ss') SCSJ,
+               FH.ZCWCSJ,
+               TO_CHAR(FH.SCSJ, 'yyyy-MM-dd') TJSJ,
+               FH.GSBH || FH.MDDGS NAMELINE,
+               FH.GSBH FCGS,
+               FH.MDDGS DCGS,
+               MX.JHCKJS,
+               MX.SJCKJS,
+               MX.YDBH,
+               YD.ZL,
+               YD.JS,
+               YD.TJ,
+               '2' TAG
+          FROM HYDATA.LD_SZYFH FH
+          LEFT JOIN HYDATA.LD_SZYMX MX
+            ON FH.FCBH = MX.FCBH
+          LEFT JOIN HYDATA.LD_YD YD
+            ON YD.YDBH = MX.YDBH
+          LEFT JOIN HYDATA.LD_GS TJGS
+            ON TJGS.GSBH = FH.MDDGS
+         WHERE FH.FCSJ >= TRUNC(SYSDATE) - #{day}
+           AND FH.FCSJ &lt; SYSDATE - #{sec} / (1440 * 60)
+           AND FH.ZT IN (1, 2, 3)
+           AND FH.XCDH IS NOT NULL
+    </select>
+
+    <!--长途到货：根据标签信息查询长途发货明细列表-->
+    <select id="queryLxDhCtList" parameterType="java.util.List"
+            resultType="com.hoau.bigdata.entity.report.FhMxAndDhMxOut">
+            SELECT FH.FCBH,
+                TRIM(QK.CPH) CPH,
+                FH.SCGSBH SHGS,
+                FH.GSBH XHGS,
+                FH.GSBH TJGSCODE,
+                TJGS.GSJC TJGS,
+                FH.XCDH ZXDH,
+                FH.ZT,
+                CASE FH.ZT
+                WHEN 2 THEN TO_CHAR(FH.DDSJ, 'yyyy-MM-dd')
+                WHEN 3 THEN TO_CHAR(FH.XCWCSJ, 'yyyy-MM-dd')
+                END AS TJSJ,
+                QK.GSBH FCGS,
+                QK.MDDGS DCGS,
+                MX.JHCKJS,
+                MX.SJCKJS,
+                MX.YDBH,
+                YD.ZL,
+                YD.JS,
+                YD.TJ
+            FROM HYDATA.LD_FHD FH
+            LEFT JOIN HYDATA.LD_FHCLQK QK
+              ON QK.FCBH = FH.FCBH
+            LEFT JOIN HYDATA.LD_FHDMX MX
+              ON MX.FHDBH = FH.FHDBH
+            LEFT JOIN HYDATA.LD_YD YD
+              ON YD.YDBH = MX.YDBH
+            LEFT JOIN HYDATA.LD_GS TJGS
+              ON TJGS.GSBH = FH.GSBH
+            WHERE FH.ZT IN (1, 2, 3)
+                AND FH.XCDH IS NOT NULL
+                AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+                AND <foreach collection="list" item="item" open="(" close=")" separator="or">
+                    (FH.XCDH = #{item.UNLDPLANID}
+                    AND MX.YDBH = #{item.CSGNID})
+                </foreach>
+    </select>
+
+    <!--上转移到货：根据标签信息查询上转移明细列表-->
+    <select id="queryLxDhSzyList" parameterType="java.util.List"
+            resultType="com.hoau.bigdata.entity.report.FhMxAndDhMxOut">
+            SELECT FH.FCBH,
+                TRIM(FH.CPH) CPH,
+                FH.GSBH SHGS,
+                FH.MDDGS XHGS,
+                FH.MDDGS TJGSCODE,
+                TJGS.GSJC TJGS,
+                FH.XCDH ZXDH,
+                FH.ZT,
+                TO_CHAR(FH.FCSJ, 'yyyy-MM-dd hh24:mi:ss') FCSJ,
+                TO_CHAR(FH.SCSJ, 'yyyy-MM-dd hh24:mi:ss') SCSJ,
+                FH.ZCWCSJ,
+                TO_CHAR(FH.SCSJ, 'yyyy-MM-dd') TJSJ,
+                FH.GSBH || FH.MDDGS NAMELINE,
+                FH.GSBH FCGS,
+                FH.MDDGS DCGS,
+                MX.JHCKJS,
+                MX.SJCKJS,
+                MX.YDBH,
+                YD.ZL,
+                YD.JS,
+                YD.TJ
+            FROM HYDATA.LD_SZYFH FH
+            LEFT JOIN HYDATA.LD_SZYMX MX
+              ON FH.FCBH = MX.FCBH
+            LEFT JOIN HYDATA.LD_YD YD
+              ON YD.YDBH = MX.YDBH
+            LEFT JOIN HYDATA.LD_GS TJGS
+              ON TJGS.GSBH = FH.MDDGS
+            WHERE FH.ZT IN (1, 2, 3)
+                AND FH.XCDH IS NOT NULL
+                AND <foreach collection="list" item="item" open="(" close=")" separator="or">
+                    (FH.XCDH = #{item.UNLDPLANID}
+                    AND MX.YDBH = #{item.CSGNID})
+                </foreach>
+    </select>
+
+    <!--长途到货按发车编号分组统计该发车编号下所有运单的总重量、总体积、总件数-->
+    <select id="queryCtDhTotalDataByFcbh" parameterType="java.util.List"
+            resultType="com.hoau.bigdata.entity.report.FhMxAndDhMxOut">
+        SELECT
+           FH.FCBH,
+           FH.GSBH TJGSCODE,
+           SUM(YD.ZL) TZL,
+           SUM(YD.JS) TJS,
+           SUM(YD.TJ) TTJ
+         FROM HYDATA.LD_FHD FH
+        LEFT JOIN HYDATA.LD_FHCLQK QK
+          ON QK.FCBH = FH.FCBH
+        LEFT JOIN HYDATA.LD_FHDMX MX
+          ON MX.FHDBH = FH.FHDBH
+        LEFT JOIN HYDATA.LD_YD YD
+          ON YD.YDBH = MX.YDBH
+        WHERE FH.XCDH IS NOT NULL
+          AND QK.ZCLX NOT IN (1, 2, 6, 12, 14)
+          AND <foreach collection="list" item="item" open="(" close=")" separator="or">
+                FH.FCBH = #{item.FCBH} AND FH.GSBH = #{item.TJGSCODE}
+            </foreach>
+        GROUP BY FH.FCBH,FH.GSBH
+    </select>
+
+    <!--上转移到货按发车编号分组统计该发车编号下所有运单的总重量、总体积、总件数-->
+    <select id="querySzyDhTotalDataByFcbh" parameterType="java.util.List"
+            resultType="com.hoau.bigdata.entity.report.FhMxAndDhMxOut">
+        SELECT
+           FH.FCBH,
+           FH.MDDGS TJGSCODE,
+           SUM(YD.ZL) TZL,
+           SUM(YD.JS) TJS,
+           SUM(YD.TJ) TTJ
+         FROM HYDATA.LD_SZYFH FH
+        LEFT JOIN HYDATA.LD_SZYMX MX
+          ON FH.FCBH = MX.FCBH
+        LEFT JOIN HYDATA.LD_YD YD
+          ON YD.YDBH = MX.YDBH
+        WHERE FH.ZT IN (1, 2, 3)
+          AND FH.XCDH IS NOT NULL
+          AND <foreach collection="list" item="item" open="(" close=")" separator="or">
+              FH.FCBH = #{item.FCBH} AND FH.MDDGS = #{item.TJGSCODE}
+            </foreach>
+        GROUP BY FH.FCBH,FH.MDDGS
+    </select>
+
+</mapper>

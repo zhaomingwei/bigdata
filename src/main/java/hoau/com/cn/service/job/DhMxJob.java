@@ -1,6 +1,6 @@
 package hoau.com.cn.service.job;
 
-import hoau.com.cn.service.format.FilterOutputFormatWithOther;
+import hoau.com.cn.service.format.FilterOutputFormat;
 import hoau.com.cn.service.mapper.DhMxMapper;
 import hoau.com.cn.service.reducer.DhMxReducer;
 import hoau.com.cn.utils.DateUtils;
@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 /**
- * @Description: 到货明细Job
+ * @Description: 到货明细Job ------ 目前已废弃（暂未使用到，直接在定时任务里输出到hdfs文件系统）
  * @Author: zhaowei
  * @Date: 2020/10/21
  * @Time: 13:46
@@ -29,10 +29,10 @@ import java.util.Date;
 public class DhMxJob {
 
     public static void main(String[] args) throws Exception {
-        System.out.println("处理到货明细看板数据开始时间:" + DateUtils.formatDateToString(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        System.out.println("效率监控看板-到货开始时间:" + DateUtils.formatDateToString(new Date(), "yyyy-MM-dd HH:mm:ss"));
         Configuration configuration = new Configuration();
         int res = ToolRunner.run(configuration, new DhMxTool(), args);
-        System.out.println("处理到货明细看板数据结束时间:" + DateUtils.formatDateToString(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        System.out.println("效率监控看板-到货结束时间:" + DateUtils.formatDateToString(new Date(), "yyyy-MM-dd HH:mm:ss"));
         System.exit(res);
     }
 
@@ -46,10 +46,10 @@ public class DhMxJob {
             String dateStr = DateUtils.formatDateToString(new Date(), "yyyyMMddHHmmss");
             System.out.println("run:" + Arrays.toString(args));
             /**
-             * @Desc 第一个参数：输出目标文件HDFS路径 如：hdfs://master:9000/report/statistics/dhmxTable
-             *       第二个参数：输出目标文件类型 如：.txt
-             *       第三个参数：输出目标文件中产生的临时文件存放路径 如：hdfs://master:9000/report/dhmx/tmp
-             *       第四个参数：件扫描信息文件路径 如：hdfs://master:9000/report/visualization/dhLabel/dhLabel.txt
+             * @Desc 第一个参数：输出目标文件HDFS路径 如：hdfs://cluster/report/statistics/dhmxTable
+             *       第二个参数：输出目标文件类型 如：.json
+             *       第三个参数：输出目标文件中产生的临时文件存放路径 如：hdfs://cluster:9000/report/dhmx
+             *       第四个参数：件扫描信息文件路径 如：hdfs://cluster:9000/report/visualization/dhLabel/dhLabel.json
              *       第五个参数：输入文件路径
              *       ... : 多个输入文件路径
              * 参数不能小于5个
@@ -59,11 +59,11 @@ public class DhMxJob {
                 return 1;
             }
             /**设置此目录是为了拦截时输出到自定义文件里**/
-            conf.set("baseDir", args[0] + "/" + dateStr);
+            conf.set("baseDir", args[0]);
             /**设置此目录是为了拦截时输出到自定义文件里**/
             conf.set("outName", args[1]);
 
-            Job job = new Job(conf, "FHMX_AND_DHMX_JOB");
+            Job job = new Job(conf, "DhMx_Job");
             /**设置map输出key、value的类型,即：自定义的FhMxAndDhMxMapper中的定义的泛型Mapper<LongWritable, Text, Text, Text>后两个类型**/
             job.setMapOutputKeyClass(Text.class);
             job.setMapOutputValueClass(Text.class);
@@ -75,7 +75,7 @@ public class DhMxJob {
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Text.class);
             /**LazyOutputFormat-避免输出空文件, FilterOutputFormatWithOther-设置输出文件格式，实现自定义文件名称**/
-            LazyOutputFormat.setOutputFormatClass(job, FilterOutputFormatWithOther.class);
+            LazyOutputFormat.setOutputFormatClass(job, FilterOutputFormat.class);
 
             /**可针对不同输入路径指定不同的Mapper，故可以指定不同Mapper处理不同类型的文件：**/
             String targetDir = "";
@@ -84,8 +84,8 @@ public class DhMxJob {
                     continue;
                 }
                 if (i == 2) {
-                    targetDir = args[i]+ "/" + dateStr;
-                    FileOutputFormat.setOutputPath(job, new Path(targetDir));
+                    targetDir = args[i];
+                    FileOutputFormat.setOutputPath(job, new Path(targetDir + "/tmp/" + dateStr));
                     continue;
                 }
                 FileInputFormat.addInputPath(job, new Path(args[i]));

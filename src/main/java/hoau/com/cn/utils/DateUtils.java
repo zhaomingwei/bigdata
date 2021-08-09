@@ -2,6 +2,7 @@ package hoau.com.cn.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -70,6 +71,7 @@ public class DateUtils {
 
     /**
      * 日期相差天数，date2-date1
+     *
      * @param date1
      * @param date2
      * @return
@@ -96,6 +98,50 @@ public class DateUtils {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 时间差
+     *  yyyy-MM-dd HH:mm:ss
+     * @param startDate 开始时间
+     * @param endDate   结束时间
+     * @return 相差毫秒数
+     * @throws Exception
+     */
+    public static long getDiffTime(String startDate, String endDate) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date sdate = sdf.parse(startDate);
+        Date edate = sdf.parse(endDate);
+        long startTime = sdate.getTime();
+        long endTime = edate.getTime();
+        return endTime - startTime;
+    }
+
+    /**
+     * @author: joel
+     * @description: 将毫秒值转为时分
+     * @params: @param null:
+     * @return: 00:00
+     * @time: 2020/12/25 15:34
+     */
+    public static String getGapTime(long time) {
+        long hours = time / (1000 * 60 * 60);
+        long minutes = (time - hours * (1000 * 60 * 60)) / (1000 * 60);
+        String diffTime = "";
+        if (minutes < 10) {
+            diffTime = hours + ":0" + minutes;
+        } else {
+            diffTime = hours + ":" + minutes;
+        }
+        return diffTime;
+    }
+
+    public static void main(String args[]) throws ParseException {
+        String timeTrue = "";
+        String timePlan = "2020-12-25 15:33:00";
+        long diffTime = DateUtils.getDiffTime(timePlan, timeTrue);
+        String gapTime = DateUtils.getGapTime(diffTime);
+        System.out.println(gapTime);
     }
 
 }

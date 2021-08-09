@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @Description: 到货明细看板数据实体类
+ * @Description: 效率监控看板-到货数据实体类
  * @Author: zhaowei
  * @Date: 2020/10/21
  * @Time: 15:12
@@ -23,6 +23,10 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
      * 统计公司
      */
     private String TJGS;
+    /**
+     * 当前时间: 2020-01-04 10:24:09
+     */
+    private String CURRENTTIME;
     /**
      * 发车编号
      */
@@ -76,6 +80,18 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
      */
     private String TJ;
     /**
+     * 该发车编号下所有运单总重量
+     */
+    private String TZL;
+    /**
+     * 该发车编号下所有运单总件数
+     */
+    private String TJS;
+    /**
+     * 该发车编号下所有运单总体积
+     */
+    private String TTJ;
+    /**
      * 件号(标签号，跟票件关系表有关联)
      */
     private String LBLID;
@@ -119,6 +135,7 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
     @Override
     public void write(DataOutput out) throws IOException {
         Text.writeString(out, this.TJGS);
+        Text.writeString(out, this.CURRENTTIME);
         Text.writeString(out, this.FCBH);
         Text.writeString(out, this.CPH);
         Text.writeString(out, this.SHGS);
@@ -132,6 +149,9 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
         Text.writeString(out, this.ZL);
         Text.writeString(out, this.JS);
         Text.writeString(out, this.TJ);
+        Text.writeString(out, this.TZL);
+        Text.writeString(out, this.TJS);
+        Text.writeString(out, this.TTJ);
         Text.writeString(out, this.LBLID);
         Text.writeString(out, this.RCVMSGDATE);
         Text.writeString(out, this.SCANDATE);
@@ -147,6 +167,7 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
     @Override
     public void readFields(DataInput in) throws IOException {
         this.TJGS = Text.readString(in);
+        this.CURRENTTIME = Text.readString(in);
         this.FCBH = Text.readString(in);
         this.CPH = Text.readString(in);
         this.SHGS = Text.readString(in);
@@ -160,6 +181,9 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
         this.ZL = Text.readString(in);
         this.JS = Text.readString(in);
         this.TJ = Text.readString(in);
+        this.TZL = Text.readString(in);
+        this.TJS = Text.readString(in);
+        this.TTJ = Text.readString(in);
         this.LBLID = Text.readString(in);
         this.RCVMSGDATE = Text.readString(in);
         this.SCANDATE = Text.readString(in);
@@ -175,57 +199,65 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
     @Override
     public void write(PreparedStatement statement) throws SQLException {
         statement.setString(1, TJGS);
-        statement.setString(2, FCBH);
-        statement.setString(3, CPH);
-        statement.setString(4, SHGS);
-        statement.setString(5, ZXDH);
-        statement.setString(6, ZT);
-        statement.setString(7, FCGS);
-        statement.setString(8, DCGS);
-        statement.setString(9, JHCKJS);
-        statement.setString(10, SJCKJS);
-        statement.setString(11, YDBH);
-        statement.setString(12, ZL);
-        statement.setString(13, JS);
-        statement.setString(14, TJ);
-        statement.setString(15, LBLID);
-        statement.setString(16, RCVMSGDATE);
-        statement.setString(17, SCANDATE);
-        statement.setString(18, JHFCSJ);
-        statement.setString(19, XHGS);
-        statement.setString(20, TJSJ);
-        statement.setString(21, NAMELINE);
-        statement.setString(22, BUSSESCODE);
-        statement.setString(23, SCSJ);
-        statement.setString(24, FCSJ);
+        statement.setString(2, CURRENTTIME);
+        statement.setString(3, FCBH);
+        statement.setString(4, CPH);
+        statement.setString(5, SHGS);
+        statement.setString(6, ZXDH);
+        statement.setString(7, ZT);
+        statement.setString(8, FCGS);
+        statement.setString(9, DCGS);
+        statement.setString(10, JHCKJS);
+        statement.setString(11, SJCKJS);
+        statement.setString(12, YDBH);
+        statement.setString(13, ZL);
+        statement.setString(14, JS);
+        statement.setString(15, TJ);
+        statement.setString(16, TZL);
+        statement.setString(17, TJS);
+        statement.setString(18, TTJ);
+        statement.setString(19, LBLID);
+        statement.setString(20, RCVMSGDATE);
+        statement.setString(21, SCANDATE);
+        statement.setString(22, JHFCSJ);
+        statement.setString(23, XHGS);
+        statement.setString(24, TJSJ);
+        statement.setString(25, NAMELINE);
+        statement.setString(26, BUSSESCODE);
+        statement.setString(27, SCSJ);
+        statement.setString(28, FCSJ);
     }
 
     @Override
     public void readFields(ResultSet resultSet) throws SQLException {
         this.TJGS = resultSet.getString(1);
-        this.FCBH = resultSet.getString(2);
-        this.CPH = resultSet.getString(3);
-        this.SHGS = resultSet.getString(4);
-        this.ZXDH = resultSet.getString(5);
-        this.ZT = resultSet.getString(6);
-        this.FCGS = resultSet.getString(7);
-        this.DCGS = resultSet.getString(8);
-        this.JHCKJS = resultSet.getString(9);
-        this.SJCKJS = resultSet.getString(10);
-        this.YDBH = resultSet.getString(11);
-        this.ZL = resultSet.getString(12);
-        this.JS = resultSet.getString(13);
-        this.TJ = resultSet.getString(14);
-        this.LBLID = resultSet.getString(15);
-        this.RCVMSGDATE = resultSet.getString(16);
-        this.SCANDATE = resultSet.getString(17);
-        this.JHFCSJ = resultSet.getString(18);
-        this.XHGS = resultSet.getString(19);
-        this.TJSJ = resultSet.getString(20);
-        this.NAMELINE = resultSet.getString(21);
-        this.BUSSESCODE = resultSet.getString(22);
-        this.SCSJ = resultSet.getString(23);
-        this.FCSJ = resultSet.getString(24);
+        this.CURRENTTIME = resultSet.getString(2);
+        this.FCBH = resultSet.getString(3);
+        this.CPH = resultSet.getString(4);
+        this.SHGS = resultSet.getString(5);
+        this.ZXDH = resultSet.getString(6);
+        this.ZT = resultSet.getString(7);
+        this.FCGS = resultSet.getString(8);
+        this.DCGS = resultSet.getString(9);
+        this.JHCKJS = resultSet.getString(10);
+        this.SJCKJS = resultSet.getString(11);
+        this.YDBH = resultSet.getString(12);
+        this.ZL = resultSet.getString(13);
+        this.JS = resultSet.getString(14);
+        this.TJ = resultSet.getString(15);
+        this.TZL = resultSet.getString(16);
+        this.TJS = resultSet.getString(17);
+        this.TTJ = resultSet.getString(18);
+        this.LBLID = resultSet.getString(19);
+        this.RCVMSGDATE = resultSet.getString(20);
+        this.SCANDATE = resultSet.getString(21);
+        this.JHFCSJ = resultSet.getString(22);
+        this.XHGS = resultSet.getString(23);
+        this.TJSJ = resultSet.getString(24);
+        this.NAMELINE = resultSet.getString(25);
+        this.BUSSESCODE = resultSet.getString(26);
+        this.SCSJ = resultSet.getString(27);
+        this.FCSJ = resultSet.getString(28);
     }
 
     public String getTJGS() {
@@ -234,6 +266,14 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
 
     public void setTJGS(String TJGS) {
         this.TJGS = TJGS;
+    }
+
+    public String getCURRENTTIME() {
+        return CURRENTTIME;
+    }
+
+    public void setCURRENTTIME(String CURRENTTIME) {
+        this.CURRENTTIME = CURRENTTIME;
     }
 
     public String getFCBH() {
@@ -340,6 +380,30 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
         this.TJ = TJ;
     }
 
+    public String getTZL() {
+        return TZL;
+    }
+
+    public void setTZL(String TZL) {
+        this.TZL = TZL;
+    }
+
+    public String getTJS() {
+        return TJS;
+    }
+
+    public void setTJS(String TJS) {
+        this.TJS = TJS;
+    }
+
+    public String getTTJ() {
+        return TTJ;
+    }
+
+    public void setTTJ(String TTJ) {
+        this.TTJ = TTJ;
+    }
+
     public String getLBLID() {
         return LBLID;
     }
@@ -423,6 +487,7 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
     public String getStringContent() {
         StringBuilder sb = new StringBuilder();
         sb.append(TJGS == null ? "" : TJGS).append(",")
+                .append(CURRENTTIME == null ? "" : CURRENTTIME).append(",")
                 .append(FCBH == null ? "" : FCBH).append(",")
                 .append(CPH == null ? "" : CPH).append(",")
                 .append(SHGS == null ? "" : SHGS).append(",")
@@ -436,6 +501,9 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
                 .append(ZL == null ? "" : ZL).append(",")
                 .append(JS == null ? "" : JS).append(",")
                 .append(TJ == null ? "" : TJ).append(",")
+                .append(TZL == null ? "" : TZL).append(",")
+                .append(TJS == null ? "" : TJS).append(",")
+                .append(TTJ == null ? "" : TTJ).append(",")
                 .append(LBLID == null ? "" : LBLID).append(",")
                 .append(RCVMSGDATE == null ? "" : RCVMSGDATE).append(",")
                 .append(SCANDATE == null ? "" : SCANDATE).append(",")
@@ -447,31 +515,36 @@ public class FhMxAndDhMxOut implements Writable, DBWritable {
 
     @Override
     public String toString() {
-        return "FhMxAndDhMxOut{" +
-                "TJGS='" + TJGS + '\'' +
-                ", FCBH='" + FCBH + '\'' +
-                ", CPH='" + CPH + '\'' +
-                ", SHGS='" + SHGS + '\'' +
-                ", ZXDH='" + ZXDH + '\'' +
-                ", ZT='" + ZT + '\'' +
-                ", FCGS='" + FCGS + '\'' +
-                ", DCGS='" + DCGS + '\'' +
-                ", JHCKJS='" + JHCKJS + '\'' +
-                ", SJCKJS='" + SJCKJS + '\'' +
-                ", YDBH='" + YDBH + '\'' +
-                ", ZL='" + ZL + '\'' +
-                ", JS='" + JS + '\'' +
-                ", TJ='" + TJ + '\'' +
-                ", LBLID='" + LBLID + '\'' +
-                ", RCVMSGDATE='" + RCVMSGDATE + '\'' +
-                ", SCANDATE='" + SCANDATE + '\'' +
-                ", JHFCSJ='" + JHFCSJ + '\'' +
-                ", XHGS='" + XHGS + '\'' +
-                ", TJSJ='" + TJSJ + '\'' +
-                ", NAMELINE='" + NAMELINE + '\'' +
-                ", BUSSESCODE='" + BUSSESCODE + '\'' +
-                ", SCSJ='" + SCSJ + '\'' +
-                ", FCSJ='" + FCSJ + '\'' +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("FhMxAndDhMxOut{TJGS='").append(TJGS == null ? "" : TJGS).append("'")
+                .append(", CURRENTTIME='").append(CURRENTTIME == null ? "" : CURRENTTIME).append("'")
+                .append(", FCBH='").append(FCBH == null ? "" : FCBH).append("'")
+                .append(", CPH='").append(CPH == null ? "" : CPH).append("'")
+                .append(", SHGS='").append(SHGS == null ? "" : SHGS).append("'")
+                .append(", ZXDH='").append(ZXDH == null ? "" : ZXDH).append("'")
+                .append(", ZT='").append(ZT == null ? "" : ZT).append("'")
+                .append(", FCGS='").append(FCGS == null ? "" : FCGS).append("'")
+                .append(", DCGS='").append(DCGS == null ? "" : DCGS).append("'")
+                .append(", JHCKJS='").append(JHCKJS == null ? "" : JHCKJS).append("'")
+                .append(", SJCKJS='").append(SJCKJS == null ? "" : SJCKJS).append("'")
+                .append(", YDBH='").append(YDBH == null ? "" : YDBH).append("'")
+                .append(", ZL='").append(ZL == null ? "" : ZL).append("'")
+                .append(", JS='").append(JS == null ? "" : JS).append("'")
+                .append(", TJ='").append(TJ == null ? "" : TJ).append("'")
+                .append(", TZL='").append(TZL == null ? "" : TZL).append("'")
+                .append(", TJS='").append(TJS == null ? "" : TJS).append("'")
+                .append(", TTJ='").append(TTJ == null ? "" : TTJ).append("'")
+                .append(", LBLID='").append(LBLID == null ? "" : LBLID).append("'")
+                .append(", RCVMSGDATE='").append(RCVMSGDATE == null ? "" : RCVMSGDATE).append("'")
+                .append(", SCANDATE='").append(SCANDATE == null ? "" : SCANDATE).append("'")
+                .append(", JHFCSJ='").append(JHFCSJ == null ? "" : JHFCSJ).append("'")
+                .append(", XHGS='").append(SCSJ == null ? "" : XHGS).append("'")
+                .append(", TJSJ='").append(TJSJ == null ? "" : TJSJ).append("'")
+                .append(", NAMELINE='").append(NAMELINE == null ? "" : NAMELINE).append("'")
+                .append(", BUSSESCODE='").append(BUSSESCODE == null ? "" : BUSSESCODE).append("'")
+                .append(", SCSJ='").append(SCSJ == null ? "" : SCSJ).append("'")
+                .append(", FCSJ='").append(FCSJ == null ? "" : FCSJ).append("'")
+                .append("}");
+        return sb.toString();
     }
 }

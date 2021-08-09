@@ -45,10 +45,10 @@ public class DhMxMapper extends Mapper<LongWritable, Text, Text, Text> {
                 sb.append(label.getPLANID() == null ? "" : label.getPLANID().trim());
                 k.set(sb.toString());
             }
-//            System.out.println("mapper->:key:" + key + ", value:" + val);
+//            System.out.println("DhMxMapper->:key:" + key + ", value:" + val);
             context.write(k, value);
         }catch (Exception e){
-            System.out.println("FhMxAndDhMxMapper-exception:" + e);
+            System.out.println("DhMxMapper-exception:" + e);
         }
     }
 

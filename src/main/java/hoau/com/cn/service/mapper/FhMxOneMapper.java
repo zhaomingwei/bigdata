@@ -45,10 +45,10 @@ public class FhMxOneMapper extends Mapper<LongWritable, Text, Text, Text> {
                 sb.append(label.getPLANID() == null ? "" : label.getPLANID().trim());
                 k.set(sb.toString());
             }
-//            System.out.println("mapper->:key:" + key + ", value:" + val);
+//            System.out.println("FhMxOneMapper->:key:" + key + ", value:" + val);
             context.write(k, value);
         }catch (Exception e){
-            System.out.println("FhMxAndDhMxMapper-exception:" + e);
+            System.out.println("FhMxOneMapper-exception:" + e);
         }
     }
 

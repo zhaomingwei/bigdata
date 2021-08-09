@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hoau.bigdata.mapper.tm.LabelDao">
+
+    <select id="queryLabelList" resultType="com.hoau.bigdata.entity.tm.Label">
+      SELECT PDA.LBLID,
+           TO_CHAR(PDA.RCVMSGDATE, 'yyyy-MM-dd hh24:mm:ss') RCVMSGDATE,
+           TO_CHAR(PDA.SCANDATE, 'yyyy-MM-dd hh24:mm:ss') SCANDATE,
+           PDA.LOADPLANID LOADPLANID,
+           PDA.UNLDPLANID UNLDPLANID,
+           CASE PDA.SCANTYPE
+             WHEN '1' THEN PDA.LOADPLANID
+             WHEN '2' THEN PDA.UNLDPLANID
+           END AS PLANID,
+           PDA.DELIVERPLANID DELIVERPLANID,
+           PDA.CSGNID,
+           PDA.USRNAME
+      FROM HOAU.TBLSCANMSG PDA
+     WHERE PDA.SCANTYPE = #{scanType}
+       AND PDA.RCVMSGDATE >= (SYSDATE - #{sec} / (1440 * 60))
+    </select>
+
+</mapper>

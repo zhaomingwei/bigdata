@@ -1,0 +1,378 @@
+﻿<!doctype html>
+<html>
+<head>
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <title>场站可视化</title>
+        <link type="text/css" href="css/public.css" rel="stylesheet">
+        <link type="text/css" href="css/icon.css" rel="stylesheet">
+        <link type="text/css" href="css/index.css" rel="stylesheet">
+        <script type="text/javascript">
+            document.documentElement.style.fontSize = document.documentElement.clientWidth / 768 * 100 + 'px';
+        </script>
+        <script src="js/echarts.min.js"></script>
+        <style>
+            #toolbar {
+                text-align-last: right;
+                margin-right: 15px;
+            }
+
+            #companyCode {
+                border: 1px solid white;
+                background-color: white;
+                width: 60px;
+                margin-right: 10px;
+                text-align-last: left;
+            }
+
+            .cc {
+                color: white;
+            }
+        </style>
+    </head>
+<body>
+<div class="bg">
+    <div class="title">场站可视化</div>
+    <div id="toolbar">
+        <input id="companyCode" type="text"><input type="button" class="cc" value="查询" onclick="getCompanyCode()">
+        <input id="xlDh" class="cc" type="button" value="一开启/关闭" onclick="xlDh()">
+        <input id="xlFh" class="cc" type="button" value="二开启/关闭" onclick="xlFh()">
+        <input id="clDh" class="cc" type="button" value="三开启/关闭" onclick="clDh()">
+        <input id="clFh" class="cc" type="button" value="四开启/关闭" onclick="clFh()">
+    </div>
+    <div class="upleftMain">
+        <h3>效率监控看板-到货</h3>
+        <div class="upleftMain_In">
+            <div class="biaoge biaoge_list" style="width: 100%; height: 100%; ">
+                <div class="biaoge_listIn">
+                    <div class="ul_title">
+                        <table id="upleftbox" style="table-layout: auto; width: 100%; color : white; font-size: 15px; border-collapse: collapse;">
+                            <tbody>
+                            <tr style="border-bottom: 0.008rem solid rgba(14, 253, 255, 0.5); line-height: 25px;
+                                    background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));">
+                                <th>卸车完成率</th>
+                                <th>PDA扫描率</th>
+                                <th>车牌号</th>
+                                <th>发车编号</th>
+                                <th>重量(kg)</th>
+                                <th>件数</th>
+                                <th>卸车开始时间</th>
+                                <th>卸车结束时间</th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <span class="border_bg_leftTop"></span>
+            <span class="border_bg_rightTop"></span>
+            <span class="border_bg_leftBottom"></span>
+            <span class="border_bg_rightBottom"></span>
+        </div>
+    </div>
+    <div class="uprightMain">
+        <h3>效率监控看板-发货</h3>
+        <div class="uprightMain_In">
+            <div class="biaoge biaoge_list" style="width: 100%; height: 100%; ">
+                <div class="biaoge_listIn">
+                    <div class="ul_title">
+                        <table id="uprightbox" style="table-layout: auto; width: 100%; color : white; font-size: 15px; border-collapse: collapse;">
+                            <tbody>
+                                <tr style="border-bottom: 0.008rem solid rgba(14, 253, 255, 0.5); line-height: 25px;
+                                        background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1));">
+                                    <th>装车完成率</th>
+                                    <th>PDA扫描率</th>
+                                    <th>车牌号</th>
+                                    <th>发车编号</th>
+                                    <th>重量(kg)</th>
+                                    <th>件数</th>
+                                    <th>计划发车时间</th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <span class="border_bg_leftTop"></span>
+            <span class="border_bg_rightTop"></span>
+            <span class="border_bg_leftBottom"></span>
+            <span class="border_bg_rightBottom"></span>
+        </div>
+    </div>
+    <div class="downleftMain">
+        <h3>车辆信息看板-到货</h3>
+        <div class="downleftMain_In">
+            <div class="biaoge biaoge_list" style="width: 100%; height: 100%">
+                <div class="biaoge_listIn">
+                    <ul class="ul_title">
+                        <li style="width: 7%">当前状态</li>
+                        <li style="width: 8%">类型</li>
+                        <li style="width: 10%">车牌号</li>
+                        <li style="width: 15%">车型</li>
+                        <li style="width: 6%">司机</li>
+                        <li style="width: 7%">发车地</li>
+                        <li style="width: 7%">到车地</li>
+                        <li style="width: 5%">票数</li>
+                        <li style="width: 5%">件数</li>
+                        <li style="width: 7%">重量</li>
+                        <li style="width: 6%">体积</li>
+                        <li style="width: 16%">计划到达时间</li>
+                        <li style="width: 10%">路程监控</li>
+                        <li style="width: 16%">实际到达时间</li>
+                        <li style="width: 10%">延误时间(h)</li>
+                    </ul>
+                    <div class="ul_list">
+                        <div class="ul_listIn" id="downleftbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="border_bg_leftTop"></span>
+            <span class="border_bg_rightTop"></span>
+            <span class="border_bg_leftBottom"></span>
+            <span class="border_bg_rightBottom"></span>
+        </div>
+    </div>
+    <div class="downrightMain">
+        <h3>车辆信息看板-发货</h3>
+        <div class="downrightMain_In">
+            <div class="biaoge biaoge_list" style="width: 100%; height: 100%">
+                <div class="biaoge_listIn">
+                    <div class="ul_title">
+                        <ul class="ul_titleIn">
+                            <li style="width: 15%">发车编号</li>
+                            <li style="width: 10%">车牌号</li>
+                            <li style="width: 5%">状态</li>
+                            <li style="width: 5%">件数</li>
+                            <li style="width: 5%">重量</li>
+                            <li style="width: 5%">体积</li>
+                            <li style="width: 10%">扫描率</li>
+                            <li style="width: 10%">卸车完成率</li>
+                            <li style="width: 15%">开始扫描时间</li>
+                            <li style="width: 15%">实际扫描时间</li>
+                        </ul>
+                    </div>
+                    <div class="ul_list">
+                        <div class="ul_listIn" id="downrightbox">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="border_bg_leftTop"></span>
+            <span class="border_bg_rightTop"></span>
+            <span class="border_bg_leftBottom"></span>
+            <span class="border_bg_rightBottom"></span>
+        </div>
+    </div>
+    <div style="clear:both;"></div>
+</div>
+<!--数字增长累加动画-->
+<script src="js/jquery-1.11.0.min.js" type="text/javascript"></script>
+<script src="js/jquery.numscroll.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+
+    //默认上海场站code
+    var companyCode = '8400';
+
+    var xlDhFlag = true;
+    var xlFhFlag = true;
+    var clDhFlag = true;
+    var clFhFlag = true;
+
+    function xlDh() {
+        xlDhFlag = !xlDhFlag;
+        console.log("效率到货开关标识：" + xlDhFlag);
+    }
+
+    function xlFh() {
+        xlFhFlag = !xlFhFlag;
+        console.log("效率发货开关标识：" + xlFhFlag);
+    }
+
+    function clDh() {
+        clDhFlag = !clDhFlag;
+        console.log("车辆到货：" + clDhFlag);
+    }
+
+    function clFh() {
+        clFhFlag = !clFhFlag;
+        console.log("车辆发货开关标识：" + clFhFlag);
+    }
+
+    //获取公司编号
+    function getCompanyCode() {
+        var cc = $("#companyCode").val();
+        console.log("获取公司编号:" + cc);
+        if (null != cc && '' != cc) {
+            companyCode = cc;
+            efficiency_dh();
+            efficiency_fh();
+            clxx_dh();
+        }
+    }
+
+    // 效率监控看板-到货
+    function efficiency_dh() {
+        if (!xlDhFlag) {
+            console.log("效率监控看板-到货开关关闭,不执行");
+            return;
+        }
+        $.ajax({
+            url: '/bigdata/dhtj',
+            cache: false,
+            data: JSON.stringify({
+                "xhgs": companyCode
+            }),
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            success: function (res) {
+                if (null == res || res.length == 0) {
+                    console.log("效率监控看板-到货没有返回数据")
+                    return
+                }
+                var tdArr = document.getElementById('upleftbox').firstElementChild;
+                var len = res.length;
+                console.log("效率监控看板-到货返回条数：" + len);
+                //删除历史数据
+                $("#upleftbox > tbody > tr").not(':first').remove();
+                for (var i = 0; i < len; i++) {
+                    var tr = document.createElement("tr")
+                    tr.setAttribute("style", "line-height: 30px");
+                    tr.innerHTML = "<td style='text-align: center'>" + (parseFloat(res[i].xcwcl) * 100).toFixed(2) + '%' + "</td>" +
+                        "<td style='text-align: center'>" + (parseFloat(res[i].sml) * 100).toFixed(2) + '%' + "</td>" +
+                        "<td style='text-align: center'>" + res[i].cph + "</td>" +
+                        "<td style='text-align: center'>" + res[i].fcbh + "</td>" +
+                        "<td style='text-align: center'>" + res[i].zl + "</td>" +
+                        "<td style='text-align: center'>" + res[i].js + "</td>" +
+                        "<td style='text-align: center'>" + res[i].kssmsj + "</td>" +
+                        "<td style='text-align: center'>" + res[i].jssmsj + "</td>";
+                    tdArr.appendChild(tr);
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                if (XMLHttpRequest.status == 404) {
+                    top.window.location.href = "/bigdata/404";
+                } else {
+                    console.log("服务器好像除了点问题！请稍后试试");
+                }
+            }
+        });
+    };
+
+    // 效率监控看板-发货
+    function efficiency_fh() {
+        if (!xlFhFlag) {
+            console.log("效率监控看板-发货开关关闭,不执行");
+            return;
+        }
+        $.ajax({
+            url: '/bigdata/fhtj',
+            cache: false,
+            data: JSON.stringify({
+                "shgs": companyCode
+            }),
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            success: function (res) {
+                if (null == res || res.length == 0) {
+                    console.log("效率监控看板-发货没有返回数据")
+                    return
+                }
+                var tdArr = document.getElementById('uprightbox').firstElementChild;
+                var len = res.length;
+                console.log("效率监控看板-发货返回条数：" + len);
+                //删除历史数据
+                $("#uprightbox > tbody > tr").not(':first').remove();
+                for (var i = 0; i < len; i++) {
+                    var tr = document.createElement("tr");
+                    tr.setAttribute("style", "line-height: 30px");
+                    tr.innerHTML = "<td style='text-align: center'>" + (parseFloat(res[i].xcwcl) * 100).toFixed(2) + '%' + "</td>" +
+                        "<td style='text-align: center'>" + (parseFloat(res[i].sml) * 100).toFixed(2) + '%' + "</td>" +
+                        "<td style='text-align: center'>" + res[i].cph + "</td>" +
+                        "<td style='text-align: center'>" + res[i].fcbh + "</td>" +
+                        "<td style='text-align: center'>" + res[i].zl + "</td>" +
+                        "<td style='text-align: center'>" + res[i].js + "</td>" +
+                        "<td style='text-align: center'>" + res[i].jhfcsj + "</td>";
+                    tdArr.appendChild(tr);
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                if (XMLHttpRequest.status == 404) {
+                    top.window.location.href = "/bigdata/404";
+                } else {
+                    console.log("服务器好像除了点问题！请稍后试试");
+                }
+            }
+        });
+    }
+
+    //车辆信息--到货
+    function clxx_dh() {
+        if (!clDhFlag) {
+            console.log("车辆信息看板-到货开关关闭,不执行");
+            return;
+        }
+        $.ajax({
+            url: '/bigdata/clxxdh',
+            cache: false,
+            data: JSON.stringify({
+                "xhgs": companyCode
+            }),
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            success: function (res) {
+                var list = "<ul class=\"ul_con\">";
+                var len = res.length;
+                for (var i = 0; i < len; i++) {
+                    list += "<li style='width: 7%;margin-right: 0.01rem;'>" + res[i].statusNow + "</li>";
+                    list += "<li style='width: 8%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].typeStatistics + "</li>";
+                    list += "<li style='width: 10%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].cph + "</li>";
+                    list += "<li style='width: 15%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].cxms + "</li>";
+                    list += "<li style='width: 6%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].driver + "</li>";
+                    list += "<li style='width: 7%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].addressGoodsLoad + "</li>";
+                    list += "<li style='width: 7%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].addressGoodsUnload + "</li>";
+                    list += "<li style='width: 5%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].pools + "</li>";
+                    list += "<li style='width: 5%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].numGoods + "</li>";
+                    list += "<li style='width: 7%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].weight + "</li>";
+                    list += "<li style='width: 6%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].volume + "</li>";
+                    list += "<li style='width: 16%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].timePlan + "</li>";
+                    list += "<li style='width: 10%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + (parseFloat(res[i].roadMonitor) * 100).toFixed(2) + '%' + "</li>";
+                    list += "<li style='width: 16%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].timeTrue + "</li>";
+                    list += "<li style='width: 10%;margin-left: 0.01rem;margin-right: 0.01rem;'>" + res[i].timeDelay + "</li>";
+                    list += "</ul>";
+                    if (i != len - 1) {
+                        list += "<ul class='ul_con'>";
+                    }
+                }
+                document.getElementById('downleftbox').innerHTML = list;
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                if (XMLHttpRequest.status == 404) {
+                    top.window.location.href = "/bigdata/404";
+                } else {
+                    console.log("服务器好像除了点问题！请稍后试试");
+                }
+            }
+        });
+    }
+
+    $(function () {
+        efficiency_dh();
+        efficiency_fh();
+        clxx_dh();
+        window.setInterval(efficiency_dh, 10000);
+        window.setInterval(efficiency_fh, 10000);
+        window.setInterval(clxx_dh, 10000);
+    })
+</script>
+
+</body>
+</html>

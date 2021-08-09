@@ -43,10 +43,6 @@ public class TimeLineEntity implements Serializable {
      */
     private Integer todayOrTomorrow;
 
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
-
     public String getNameLine() {
         return nameLine;
     }
